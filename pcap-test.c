@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	pcap_t* pcap = pcap_open_live(param.dev_, BUFSIZ, 1, 1000, errbuf);
 
 	if (pcap == NULL) {
-		fprintf(stderr, "pcap_open_live(%s) return null - %s\n", param.dev_, errbuf);
+		fprintf(stderr, "pcap_open_live(%s) return null - %s\n\n", param.dev_, errbuf);
 		return -1;
 	}
 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 		if (res == 0) continue;
 
 		if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {
-			printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
+			printf("pcap_next_ex return %d(%s)\n\n", res, pcap_geterr(pcap));
 			break;
 		} //error 
 		
@@ -92,14 +92,14 @@ int main(int argc, char* argv[]) {
 
 			printf("%02X",ethernet->ether_shost[i]); // mac source 주소 
 			if (i == ETHER_ADDR_LEN -1){
-				printf("\n");
+				printf("\n\n");
 			}
 		}
 		printf("destination mac address \n");
 		for (int i =0; i <ETHER_ADDR_LEN; i++){
 			printf("%02X",ethernet->ether_dhost[i]); // mac destination 주소 
 			if (i == ETHER_ADDR_LEN -1){
-				printf("\n");
+				printf("\n\n");
 			}
 		}
 
@@ -115,32 +115,30 @@ int main(int argc, char* argv[]) {
 
 		// 리틀엔디안으로 구성됨 (4byte)
 		printf("source ip address \n");
-		printf("%02x \n", ntohl(ipv4->ip_src.s_addr));
+		printf("%02x \n\n", ntohl(ipv4->ip_src.s_addr));
 
 		printf("destination ip address \n");
-		printf("%02x \n", ntohl(ipv4->ip_dst.s_addr));
+		printf("%02x \n\n", ntohl(ipv4->ip_dst.s_addr));
 
 		// ## ========================== TCP ===================================================
 
 		// ntohs : Network to Host Short (2 byte)
+		printf("<TCP>\n");
 		printf("source tcp port\n");
-		printf("%d\n",ntohs(tcp-> th_sport));
-
+		printf("%d\n\n",ntohs(tcp-> th_sport));
 		printf("destination tcp port\n");
-		printf("%d\n",ntohs(tcp-> th_dport));
+		printf("%d\n\n",ntohs(tcp-> th_dport));
 
 
-		// TCP 데이터 확인 	TCP 헤더의 길이 : 20btye 
-
-
-		printf("Payload(Data): \n");
+		
+		// ========================= Print Payload (Data) ==========================
+		printf("<Payload(Data)> \n");
 		uint32_t hsize = 20; 
-		for (int i = hsize;  i < i + 10 && i <header->caplen; i++){
-			printf("0x%02X", packet[i]);
+		for (uint32_t i = hsize;  i < hsize+ 10  && i <header->caplen; i++){
+			printf("0x%02x ", packet[i]);
 		}
-		printf("\n");
+		printf("\n\n");
 	
-
 	}
 
 	pcap_close(pcap);

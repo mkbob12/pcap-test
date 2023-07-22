@@ -2,6 +2,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <libnet.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+//#include <iostream>
 //#include <bits/in.h>
 // #include "./libnet/include/libnet/libnet-headers.h"
 // #define ETHER_ADDR_LEN 6
@@ -124,32 +128,44 @@ int main(int argc, char* argv[]) {
 
 
 		// ntohs : Network to Host Short (2 byte)
-		if (ipv4->ip_p != 6){ // TCP packet만 가져오기 위해서
-			printf("udp입니다.\n");
-
-		}else{
+		if (ipv4->ip_p == 6){ // TCP packet만 가져오기 위해서
 			printf("<TCP>\n");
 			printf("source tcp port\n");
-			printf("%d\n\n",tcp->th_sport);
+			printf("%02x\n\n",tcp->th_sport);
 			printf("destination tcp port\n");
-			printf("%d\n\n",tcp-> th_dport);
+			printf("%02x\n\n",tcp-> th_dport);
+
+		}else{
+			printf("UDP 입니다");
 		}
 		
 
-		printf("%02x\n",tcp->th_off);
+		//printf("%02x\n",tcp->th_off);
 		
 		
 		// ========================= Print Payload (Data) ==========================
 		printf("\n<Payload(Data)> \n");
 
-		uint8_t offset;
-		offset = tcp->th_off * 4;
+		uint8_t offset = tcp->th_off ;
+		// 빅엔디안으로 변환 하는 과정 추가 
+		printf("offset %0x \n",offset);
 		
-		uint8_t hsize = offset; 
+		uint16_t offset_16 = offset << 8;
+		uint16_t tmp; 
+		tmp = (offset_16 & 0xFF00) >> 8;
+		tmp += (offset_16 & 0x000F) <<4;
+		tmp +=  (offset_16 & 0x00F0) >> 4;
+
+		tmp = tmp * 4;
+
+		
+		// ================================= Payload Data 추가 
+
+		uint8_t hsize = tmp; 
 		if (hsize == 20){
-			printf("this packet doesn't have payload");
+			printf("");
 		}
-		for (uint8_t i = hsize;  i < hsize+ 10  && i <header->caplen; i++){
+		for (uint32_t i = sizeof(*ethernet)+sizeof(*ipv4) + tmp;  i < sizeof(*ethernet)+sizeof(*ipv4) + tmp + 10  && i < header->caplen; i++){
 			printf("0x%02x ", packet[i]);
 		}
 		printf("\n\n");

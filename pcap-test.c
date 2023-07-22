@@ -90,14 +90,14 @@ int main(int argc, char* argv[]) {
 		printf("source mac address\n");
 		for(int i=0; i<ETHER_ADDR_LEN; i++){
 
-			printf("%02X",ethernet->ether_shost[i]); // mac source 주소 
+			printf("%02x",ethernet->ether_shost[i]); // mac source 주소 
 			if (i == ETHER_ADDR_LEN -1){
 				printf("\n\n");
 			}
 		}
 		printf("destination mac address \n");
 		for (int i =0; i <ETHER_ADDR_LEN; i++){
-			printf("%02X",ethernet->ether_dhost[i]); // mac destination 주소 
+			printf("%02x",ethernet->ether_dhost[i]); // mac destination 주소 
 			if (i == ETHER_ADDR_LEN -1){
 				printf("\n\n");
 			}
@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
 	
 		printf("<IPv4>\n");
 		u_int8_t ip_type = ipv4 -> ip_p; // TCP 버전 확인  Protocol TCP(6)
+
 		u_int8_t ip_sum  = ipv4 -> ip_sum; // TCP checksum 버전 확인 
 
 		/* TCP 일 때 뽑아야 하는 조건 추가 && Port 번호 추가  */
@@ -120,21 +121,35 @@ int main(int argc, char* argv[]) {
 		printf("destination ip address \n");
 		printf("%02x \n\n", ntohl(ipv4->ip_dst.s_addr));
 
-		// ## ========================== TCP ===================================================
+
 
 		// ntohs : Network to Host Short (2 byte)
-		printf("<TCP>\n");
-		printf("source tcp port\n");
-		printf("%d\n\n",ntohs(tcp-> th_sport));
-		printf("destination tcp port\n");
-		printf("%d\n\n",ntohs(tcp-> th_dport));
+		if (ipv4->ip_p != 6){ // TCP packet만 가져오기 위해서
+			printf("udp입니다.\n");
 
+		}else{
+			printf("<TCP>\n");
+			printf("source tcp port\n");
+			printf("%d\n\n",tcp->th_sport);
+			printf("destination tcp port\n");
+			printf("%d\n\n",tcp-> th_dport);
+		}
+		
 
+		printf("%02x\n",tcp->th_off);
+		
 		
 		// ========================= Print Payload (Data) ==========================
-		printf("<Payload(Data)> \n");
-		uint32_t hsize = 20; 
-		for (uint32_t i = hsize;  i < hsize+ 10  && i <header->caplen; i++){
+		printf("\n<Payload(Data)> \n");
+
+		uint8_t offset;
+		offset = tcp->th_off * 4;
+		
+		uint8_t hsize = offset; 
+		if (hsize == 20){
+			printf("this packet doesn't have payload");
+		}
+		for (uint8_t i = hsize;  i < hsize+ 10  && i <header->caplen; i++){
 			printf("0x%02x ", packet[i]);
 		}
 		printf("\n\n");
